@@ -6,10 +6,17 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "format": "prettier --write --ignore-path .gitignore --cache .",
+    "typecheck": "tsc",
+    "typecheck:watch": "tsc --watch",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:seed": "prisma db seed"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
+    "@prisma/client": "^6.10.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -45,6 +52,7 @@
     "lucide-react": "^0.518.0",
     "next": "15.3.2",
     "next-themes": "^0.4.6",
+    "prisma": "^6.10.1",
     "react": "^19.0.0",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.0.0",
