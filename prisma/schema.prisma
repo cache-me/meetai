@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -14,11 +13,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
 model User {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  email String @unique
-  name  String?
-  posts Post[]
+  id                     String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                   String
+  email                  String    @unique
+  password               String
+  emailVerified          DateTime?
+  gender                 String?
+  address                String?
+  image                  String?
+  role                   UserRole  @default(USER)
+  mobileNumber           String    @unique
+  isVerifiedMobileNumber Boolean   @default(false)
+  isActive               Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Post      Post[]
+
+  @@map("users")
+}
+
+enum OtpReason {
+  FORGOT_PASSWORD
+  LOGIN
+}
+
+model Otp {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  otp            String
+  mobileNumber   String
+  reason         OtpReason
+  expiresAt      DateTime
+  resendAttempts Int?      @default(0)
+
+  @@unique([mobileNumber, reason])
 }
 
 model Post {
