@@ -6,7 +6,7 @@ const mobileNumberSchema = z
   .trim()
   .min(10, "Mobile number must be at least 10 digits")
   .max(15, "Mobile number must not exceed 15 digits")
-  .regex(/^\?[\d\s-()]$/, "Invalid mobile number format");
+  .regex(/^\+?[\d\s-()]+$/, "Invalid mobile number format");
 
 const otpRequestInput = z.object({
   mobileNumber: mobileNumberSchema,

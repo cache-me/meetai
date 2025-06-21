@@ -83,11 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new InvalidCredentialsError();
         }
 
-        // TODO: Validate password
         invariant(user.password, "User does not have a password set");
-        if (!user.password) {
-          throw new InvalidCredentialsError();
-        }
         const valid = await verifyPassword(user.password, parsed.data.password);
         if (!valid) {
           throw new InvalidCredentialsError();
@@ -152,12 +148,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           data: { isVerifiedMobileNumber: true },
         });
 
-        await prisma.otp.deleteMany({
-          where: {
-            mobileNumber: parsed.data.mobileNumber,
-            reason: "LOGIN",
-          },
-        });
+        prisma.otp
+          .deleteMany({
+            where: {
+              mobileNumber: parsed.data.mobileNumber,
+              reason: "LOGIN",
+            },
+          })
+          .catch((error) => {
+            console.error("Failed to cleanup OTPs:", error);
+          });
 
         return {
           id: updatedUser.id,
