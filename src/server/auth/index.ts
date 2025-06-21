@@ -23,6 +23,7 @@ declare module "next-auth" {
 
   interface User {
     role: UserRole;
+    mobileNumber?: string;
   }
 }
 
@@ -83,6 +84,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         // TODO: Validate password
+        invariant(user.password, "User does not have a password set");
+        if (!user.password) {
+          throw new InvalidCredentialsError();
+        }
         const valid = await verifyPassword(user.password, parsed.data.password);
         if (!valid) {
           throw new InvalidCredentialsError();
@@ -104,67 +109,63 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         otp: { label: "Otp", type: "text" },
       },
       async authorize(credentials) {
-        try {
-          const parsed = userCredentialsSchema.safeParse(credentials);
-          if (!parsed.success) {
-            throw new Error("Invalid credentials format");
-          }
+        const parsed = userCredentialsSchema.safeParse(credentials);
+        if (!parsed.success) {
+          throw new Error("Invalid credentials format");
+        }
 
-          const activeOtp = await prisma.otp.findUnique({
-            where: {
-              mobileNumber_reason: {
-                mobileNumber: parsed.data.mobileNumber,
-                reason: "LOGIN",
-              },
-            },
-          });
-
-          if (!activeOtp) {
-            throw new Error("No active OTP found");
-          }
-
-          const otpVerification = await otpService.verifyOtp({
-            otpId: activeOtp.id,
-            otp: parsed.data.otp,
-          });
-
-          if (!otpVerification.success) {
-            throw new Error("Invalid or expired OTP");
-          }
-
-          const user = await prisma.user.findFirst({
-            where: {
-              mobileNumber: parsed.data.mobileNumber,
-              role: "USER",
-            },
-          });
-
-          if (!user) {
-            throw new Error("User not found");
-          }
-
-          const updatedUser = await prisma.user.update({
-            where: { id: user.id },
-            data: { isVerifiedMobileNumber: true },
-          });
-
-          await prisma.otp.deleteMany({
-            where: {
+        const activeOtp = await prisma.otp.findUnique({
+          where: {
+            mobileNumber_reason: {
               mobileNumber: parsed.data.mobileNumber,
               reason: "LOGIN",
             },
-          });
+          },
+        });
 
-          return {
-            id: updatedUser.id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            mobileNumber: updatedUser.mobileNumber,
-            role: updatedUser.role,
-          };
-        } catch (error) {
-          throw error;
+        if (!activeOtp) {
+          throw new Error("No active OTP found");
         }
+
+        const otpVerification = await otpService.verifyOtp({
+          otpId: activeOtp.id,
+          otp: parsed.data.otp,
+        });
+
+        if (!otpVerification.success) {
+          throw new Error("Invalid or expired OTP");
+        }
+
+        const user = await prisma.user.findFirst({
+          where: {
+            mobileNumber: parsed.data.mobileNumber,
+            role: "USER",
+          },
+        });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const updatedUser = await prisma.user.update({
+          where: { id: user.id },
+          data: { isVerifiedMobileNumber: true },
+        });
+
+        await prisma.otp.deleteMany({
+          where: {
+            mobileNumber: parsed.data.mobileNumber,
+            reason: "LOGIN",
+          },
+        });
+
+        return {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          mobileNumber: updatedUser.mobileNumber,
+          role: updatedUser.role,
+        };
       },
     }),
   ],

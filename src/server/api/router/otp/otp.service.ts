@@ -101,12 +101,23 @@ export const otpService = {
       });
     }
 
+    if (dayjs().isAfter(otpDoc.expiresAt)) {
+      await prisma.otp.delete({ where: { id: otpDoc.id } });
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "OTP has expired",
+      });
+    }
+
     if (input.otp !== otpDoc.otp) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Invalid OTP",
       });
     }
+
+    // Delete OTP after successful verification to prevent reuse
+    await prisma.otp.delete({ where: { id: otpDoc.id } });
 
     return { success: true };
   },

@@ -27,7 +27,7 @@ export const authConfig = {
     },
     jwt({ user, token }) {
       if (user) {
-        token.name = user.name!;
+        token.name = user.name || "";
         token.role = user.role;
         token.mobileNumber = (user as User).mobileNumber;
       }
