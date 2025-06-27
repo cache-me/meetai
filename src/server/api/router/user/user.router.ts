@@ -1,33 +1,48 @@
 import { protectedProcedure, publicProcedure, router } from "../../trpc";
 import {
   initiateLoginInput,
-  mobileNumberInput,
+  verifyLoginOTPInput,
   registrationInput,
-  verifyOTPInput,
+  updateProfileInput,
+  updatePasswordInput,
+  mobileNumberInput,
 } from "./user.input";
-import {
-  getMe,
-  initiateLogin,
-  isUserRegistered,
-  verifyLoginOTP,
-  createNewUser,
-} from "./user.service";
+import { userService } from "./user.service";
 
 export const userRouter = router({
-  me: protectedProcedure.query(({ ctx: { session } }) => getMe(session)),
-  initiateLogin: publicProcedure
-    .input(initiateLoginInput)
-    .mutation(async ({ input }) => initiateLogin(input)),
+  me: protectedProcedure.query(({ ctx: { session } }) =>
+    userService.getMe(session)
+  ),
 
-  verifyLoginOTP: publicProcedure
-    .input(verifyOTPInput)
-    .mutation(async ({ input }) => verifyLoginOTP(input)),
+  register: publicProcedure
+    .input(registrationInput)
+    .mutation(({ input }) => userService.createUser(input)),
 
   isUserRegistered: publicProcedure
     .input(mobileNumberInput)
-    .query(async ({ input }) => isUserRegistered(input)),
+    .query(({ input }) => userService.isUserRegistered(input)),
 
-  createUser: publicProcedure
-    .input(registrationInput)
-    .mutation(async ({ input }) => createNewUser(input)),
+  initiateLogin: publicProcedure
+    .input(initiateLoginInput)
+    .mutation(({ input }) => userService.initiateLogin(input)),
+
+  verifyLoginOTP: publicProcedure
+    .input(verifyLoginOTPInput)
+    .mutation(({ input }) => userService.verifyLoginOTP(input)),
+
+  updateProfile: protectedProcedure
+    .input(updateProfileInput)
+    .mutation(({ input, ctx: { session } }) =>
+      userService.updateProfile(session.user.id, input)
+    ),
+
+  updatePassword: protectedProcedure
+    .input(updatePasswordInput)
+    .mutation(({ input, ctx: { session } }) =>
+      userService.updatePassword(session.user.id, input)
+    ),
+
+  deactivateAccount: protectedProcedure.mutation(({ ctx: { session } }) =>
+    userService.deactivateUser(session.user.id)
+  ),
 });

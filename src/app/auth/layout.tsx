@@ -1,7 +1,9 @@
 type AuthenticatedAppLayoutProps = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
-export default async function AuthLayout({ children }: AuthenticatedAppLayoutProps) {
-  return children
+export default async function AuthLayout({
+  children,
+}: AuthenticatedAppLayoutProps) {
+  return children;
 }

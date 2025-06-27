@@ -3,9 +3,9 @@ import dayjs from "dayjs";
 import { sendOtpInput, verifyOtpInput, resendOtpInput } from "./otp.input";
 import { z } from "zod";
 import { env } from "process";
+import { prisma } from "@/server/db";
 import { customAlphabet } from "nanoid";
 import { NodeEnv } from "@/lib/env";
-import { prisma } from "@/server/db";
 
 const MAX_ATTEMPTS = 5;
 const nanoid = customAlphabet("1234567890", 6);
@@ -101,14 +101,6 @@ export const otpService = {
       });
     }
 
-    if (dayjs().isAfter(otpDoc.expiresAt)) {
-      await prisma.otp.delete({ where: { id: otpDoc.id } });
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "OTP has expired",
-      });
-    }
-
     if (input.otp !== otpDoc.otp) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -116,9 +108,18 @@ export const otpService = {
       });
     }
 
-    // Delete OTP after successful verification to prevent reuse
-    await prisma.otp.delete({ where: { id: otpDoc.id } });
-
     return { success: true };
+  },
+
+  async cleanupExpiredOtps() {
+    const deletedCount = await prisma.otp.deleteMany({
+      where: {
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    });
+
+    return { deletedCount: deletedCount.count };
   },
 };

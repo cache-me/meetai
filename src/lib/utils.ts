@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getErrorMessage(
   error: unknown,
-  defaultMessage: string = "Something went wrong. Please try again."
+  defaultMessage = "Something went wrong. Please try again."
 ) {
   let message = defaultMessage;
 

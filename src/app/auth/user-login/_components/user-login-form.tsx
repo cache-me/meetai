@@ -1,17 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { match } from "ts-pattern";
 import InitiateLoginForm from "./initiate-login-form";
-import RegistrationForm from "./registration-form";
-import { trpc } from "@/client/trpc/client";
 import OTPVerificationForm from "./otp-verify-form";
-import { User } from "@prisma/client";
 
 enum UserLoginStage {
   INITIATELOGIN,
   VERIFYOTP,
-  REGISTRATION,
 }
 
 export default function UserLoginContainer() {
@@ -19,25 +14,13 @@ export default function UserLoginContainer() {
     UserLoginStage.INITIATELOGIN
   );
   const [loginData, setLoginData] = useState<{
-    userFound: boolean;
+    userId: string;
     mobileNumber: string;
-    user: User;
   } | null>(null);
-
-  const [isRegistered, setIsRegistered] = useState<boolean>(false);
-
-  const isNumberInUse = trpc.user.isUserRegistered.useQuery(
-    { mobileNumber: loginData?.mobileNumber ?? "" },
-    { enabled: !!loginData }
-  );
-
-  if (isNumberInUse.data !== undefined && isRegistered !== isNumberInUse.data) {
-    setIsRegistered(isNumberInUse.data);
-  }
 
   const handleStageChange = (
     newStage: UserLoginStage,
-    data?: { userFound: boolean; mobileNumber: string; user: User }
+    data?: { userId: string; mobileNumber: string }
   ) => {
     if (data) {
       setLoginData(data);
@@ -46,35 +29,25 @@ export default function UserLoginContainer() {
   };
 
   return (
-    <div className="content-center px-4 py-6 sm:px-6 sm:py-8 lg:min-h-screen lg:w-full lg:px-8">
+    <div className="content-center px-4 py-6 sm:px-6 sm:py-8 lg:min-h-screen lg:w-full lg:px-8 lg:py-12">
       <div className="mx-auto w-full max-w-sm sm:max-w-md lg:max-w-lg">
-        {match({ stage, isRegistered })
-          .with({ stage: UserLoginStage.INITIATELOGIN }, () => (
-            <InitiateLoginForm
-              onSuccess={(data) => {
-                if (data?.userFound) {
-                  handleStageChange(UserLoginStage.VERIFYOTP, data);
-                } else {
-                  handleStageChange(UserLoginStage.REGISTRATION);
-                }
-              }}
-            />
-          ))
-          .with({ stage: UserLoginStage.VERIFYOTP, isRegistered: true }, () => (
-            <OTPVerificationForm
-              mobileNumber={loginData ? loginData.mobileNumber : ""}
-              onSuccess={() => {
-                window.location.href = "/dashboard/guest-house";
-              }}
-              onBack={() => handleStageChange(UserLoginStage.INITIATELOGIN)}
-            />
-          ))
-          .with({ stage: UserLoginStage.REGISTRATION }, () => (
-            <RegistrationForm
-              onSuccess={() => handleStageChange(UserLoginStage.INITIATELOGIN)}
-            />
-          ))
-          .otherwise(() => null)}
+        {stage === UserLoginStage.INITIATELOGIN ? (
+          <InitiateLoginForm
+            onSuccess={(data) =>
+              handleStageChange(UserLoginStage.VERIFYOTP, data)
+            }
+          />
+        ) : null}
+
+        {stage === UserLoginStage.VERIFYOTP && loginData ? (
+          <OTPVerificationForm
+            mobileNumber={loginData.mobileNumber}
+            onSuccess={() => {
+              window.location.href = "/";
+            }}
+            onBack={() => handleStageChange(UserLoginStage.INITIATELOGIN)}
+          />
+        ) : null}
       </div>
     </div>
   );

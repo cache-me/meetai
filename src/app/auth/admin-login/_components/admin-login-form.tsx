@@ -1,8 +1,6 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import logoBg from "@/assets/logo.png";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -20,6 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { LottieRenderer } from "@/components/lottie-render/lottie";
+import lottieAnimationSrc from "../../../media/assets/register.json";
 
 const getWelcomeMessage = () => {
   const hour = new Date().getHours();
@@ -83,13 +83,28 @@ export function AdminLoginForm() {
     <div className="content-center px-4 py-6 sm:px-6 sm:py-8 lg:min-h-screen lg:w-full lg:px-8 lg:py-12">
       <div className="mx-auto w-full max-w-sm sm:max-w-md lg:max-w-lg">
         <div className="space-y-8">
-          <div className="mb-4 flex items-start justify-start">
-            <Image
-              src={logoBg}
-              alt="Civil Service Institute Logo"
-              className="mr-2 h-10 w-14"
+          <div className="flex items-start justify-center gap-4">
+            <LottieRenderer
+              src={lottieAnimationSrc}
+              className="absolute inset-0"
+              style={{ width: "13%", height: "13%" }}
+              autoplay={true}
+              loop={true}
+              speed={1}
+              priority={true}
+              fallback={
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="text-4xl mb-4">🎨</div>
+                    <div className="text-lg">Welcome</div>
+                    <div className="text-sm opacity-80">
+                      Animation loading...
+                    </div>
+                  </div>
+                </div>
+              }
             />
-            <div className="text-center text-2xl">Civil Service Institute</div>
+            <div className="text-start font-medium text-6xl">Meet AI</div>
           </div>
           <div className="space-y-2 text-start">
             <p className="text-lg font-medium text-primary">

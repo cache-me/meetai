@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { trpc } from '@/client/trpc/client'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { trpc } from "@/client/trpc/client";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -9,66 +9,63 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { useToast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
-import { initiateLoginInput } from '@/server/api/router/user/user.input'
-import { zodResolver } from '@hookform/resolvers/zod'
-import Link from 'next/link'
-import { User } from '@prisma/client'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { initiateLoginInput } from "@/server/api/router/user/user.input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface InitiateLoginFormProps {
-  onSuccess: (data?: { userFound: boolean; mobileNumber: string; user: User }) => void
+  onSuccess: (data: { userId: string; mobileNumber: string }) => void;
 }
 
-export default function InitiateLoginForm({ onSuccess }: InitiateLoginFormProps) {
-  const { toast } = useToast()
+export default function InitiateLoginForm({
+  onSuccess,
+}: InitiateLoginFormProps) {
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof initiateLoginInput>>({
     resolver: zodResolver(initiateLoginInput),
     defaultValues: {
-      mobileNumber: '',
+      mobileNumber: "",
     },
-  })
+  });
 
   const initiateLoginMutation = trpc.user.initiateLogin.useMutation({
-    onSuccess: data => {
+    onSuccess: (data) => {
       toast({
-        title: 'Success',
-        description: 'OTP sent successfully',
-        variant: 'success',
-      })
-      if (data.user) {
-        onSuccess({
-          userFound: data.userFound,
-          mobileNumber: data.user.mobileNumber,
-          user: data.user,
-        })
-      }
+        title: "Success",
+        description: "OTP sent successfully",
+        variant: "success",
+      });
+      onSuccess({
+        userId: data.user.id,
+        mobileNumber: form.getValues("mobileNumber"),
+      });
     },
-    onError: error => {
+    onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Something went wrong',
-        variant: 'destructive',
-      })
-      onSuccess()
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      });
     },
-  })
+  });
 
   const onSubmit = (values: z.infer<typeof initiateLoginInput>) => {
-    initiateLoginMutation.mutate(values)
-  }
+    initiateLoginMutation.mutate(values);
+  };
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold">Login or sign up to continue</h1>
         <p className="text-muted-foreground">
-          Enter your mobile number to get started. We will send you a one-time password (OTP) to
-          verify your account.
+          Enter your mobile number to get started. We will send you a one-time
+          password (OTP) to verify your account.
         </p>
       </div>
 
@@ -104,10 +101,12 @@ export default function InitiateLoginForm({ onSuccess }: InitiateLoginFormProps)
           <Button
             type="submit"
             className="h-12 w-full"
-            disabled={!form.formState.isValid || initiateLoginMutation.isPending}
+            disabled={
+              !form.formState.isValid || initiateLoginMutation.isPending
+            }
             loading={initiateLoginMutation.isPending}
           >
-            Verify
+            Get OTP
           </Button>
         </form>
       </Form>
@@ -115,13 +114,13 @@ export default function InitiateLoginForm({ onSuccess }: InitiateLoginFormProps)
         <Link
           href="/auth/user-login"
           className={cn(
-            buttonVariants({ variant: 'ghost' }),
-            'text-sm text-muted-foreground hover:text-primary',
+            buttonVariants({ variant: "ghost" }),
+            "text-sm text-muted-foreground hover:text-primary"
           )}
         >
           Having trouble logging in? Get Help
         </Link>
       </div>
     </div>
-  )
+  );
 }
