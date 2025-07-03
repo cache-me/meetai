@@ -1,0 +1,26 @@
+[
+    {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "mobileNumber": "7894682213",
+      "role": "USER",
+      "gender": "MALE",
+      "address": "123 Main St",
+      "image": "https://example.com/avatar.jpg",
+      "isActive": true
+    },
+    {
+        "name": "System Administrator",
+        "email": "admin@example.com",
+        "role": "ADMIN",
+        "mobileNumber": "7653862991",
+        "isActive": true
+    },
+    {
+        "name": "Super Administrator",
+        "email": "superadmin@example.com",
+        "role": "SUPER_ADMIN",
+        "mobileNumber": "9876543210",
+        "isActive": true
+    }
+  ]
